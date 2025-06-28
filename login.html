@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login/Register</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+  <div class="bg-white p-8 rounded shadow-md w-96">
+    <h2 id="form-title" class="text-2xl font-bold mb-6 text-center">Login</h2>
+
+    <div class="space-y-4">
+      <input type="text" id="username" placeholder="Username" class="w-full p-2 border rounded" />
+      <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded" />
+    </div>
+
+    <button id="submit-btn" class="mt-6 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Login</button>
+
+    <p class="text-center mt-4 text-sm">
+      <span id="toggle-text">Don't have an account?</span>
+      <button id="toggle-btn" class="text-blue-500 underline">Register</button>
+    </p>
+
+    <p id="message" class="text-center text-red-500 mt-2 text-sm"></p>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCvLuPpg6fS0HSE-Ut7hhc6vC_trJAnhWw",
+      authDomain: "esp32-rtdb-e26d5.firebaseapp.com",
+      databaseURL: "https://esp32-rtdb-e26d5-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "esp32-rtdb-e26d5",
+      storageBucket: "esp32-rtdb-e26d5.appspot.com",
+      //messagingSenderId: "YOUR_SENDER_ID",
+      //appId: "YOUR_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const formTitle = document.getElementById('form-title');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const submitBtn = document.getElementById('submit-btn');
+    const toggleBtn = document.getElementById('toggle-btn');
+    const toggleText = document.getElementById('toggle-text');
+    const message = document.getElementById('message');
+
+    let isLogin = true;
+
+    toggleBtn.addEventListener('click', () => {
+      isLogin = !isLogin;
+      formTitle.textContent = isLogin ? 'Login' : 'Register';
+      submitBtn.textContent = isLogin ? 'Login' : 'Register';
+      toggleText.textContent = isLogin ? "Don't have an account?" : "Already have an account?";
+      toggleBtn.textContent = isLogin ? 'Register' : 'Login';
+      message.textContent = '';
+    });
+
+    submitBtn.addEventListener('click', () => {
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (username === '' || password === '') {
+        message.textContent = 'Please fill in all fields.';
+        return;
+      }
+
+      const usersRef = db.ref('users/' + username);
+
+      usersRef.get().then(snapshot => {
+        if (isLogin) {
+          if (snapshot.exists()) {
+            const userData = snapshot.val();
+            if (userData.password === password) {
+              // Store username in localStorage
+              localStorage.setItem('loggedInUser', username);
+
+              message.textContent = 'Login successful!';
+              message.classList.replace('text-red-500', 'text-green-500');
+              setTimeout(() => {
+                window.location.href = 'index.html'; 
+              }, 1000);
+            } else {
+              message.textContent = 'Incorrect password.';
+              message.classList.replace('text-green-500', 'text-red-500');
+            }
+          } else {
+            message.textContent = 'User does not exist.';
+            message.classList.replace('text-green-500', 'text-red-500');
+          }
+        } else {
+          if (snapshot.exists()) {
+            message.textContent = 'Username already taken.';
+            message.classList.replace('text-green-500', 'text-red-500');
+          } else {
+            usersRef.set({ password: password }).then(() => {
+              message.textContent = 'Registration successful!';
+              message.classList.replace('text-red-500', 'text-green-500');
+            }).catch(error => {
+              console.error(error);
+              message.textContent = 'Error during registration.';
+              message.classList.replace('text-green-500', 'text-red-500');
+            });
+          }
+        }
+      }).catch(error => {
+        console.error(error);
+        message.textContent = 'Something went wrong.';
+        message.classList.replace('text-green-500', 'text-red-500');
+      });
+    });
+  </script>
+</body>
+</html>
