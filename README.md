@@ -1,9 +1,13 @@
-# iot-smart-irrigation
+IoT Smart Irrigation System
+Requirements
+ESP32 microcontroller
 
-# Requirements:
-# esp32
-# rain sensor
-# soil moisture sensor
-# temperature sensor
-# light detection sensor(LDR)
-# water level sensor
+Rain sensor
+
+Soil moisture sensor
+
+Temperature sensor
+
+Light sensor (LDR)
+
+Water level sensor
